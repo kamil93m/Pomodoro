@@ -132,7 +132,7 @@ namespace Pomodoro
                     case 1: secondsCounter++; break;
                     default: Console.WriteLine("Unknowed"); break;
                 }
-                Console.WriteLine("Time: " + string.Format("{0:D2}", secondsCounter/3600) + ":" + string.Format("{0:D2}", (secondsCounter /60)%3600) + ":" + string.Format("{0:D2}", secondsCounter % 60 ));
+                Console.WriteLine("Time: " + string.Format("{0:D2}", secondsCounter/3600) + ":" + string.Format("{0:D2}", (secondsCounter /60)%60) + ":" + string.Format("{0:D2}", secondsCounter % 60 ));
                 Thread.Sleep(1000);
             }
         }

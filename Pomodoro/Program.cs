@@ -106,26 +106,67 @@ namespace Pomodoro
             long QuadPart;
         }
 
+        static uint dwSessionID;
+        static uint dwBytesReturned;
+        static IntPtr pInfo;
+        static int dwFlags;
+        static int secondsCounter;
+        static bool watchUser;
+
         static void Main(string[] args)
         {
-            uint dwSessionID = WTSGetActiveConsoleSessionId();
-            uint dwBytesReturned = 0;
+            if (args.Length > 0 && args[0].Equals("NO")){
+                watchUser = false;
+            } else
+            {
+                watchUser = true;
+            }
+            dwSessionID = WTSGetActiveConsoleSessionId();
+            dwBytesReturned = 0;
             int dwFlags = 0;
-            IntPtr pInfo = IntPtr.Zero;
-            int secondsCounter = 0;
+            pInfo = IntPtr.Zero;
+            secondsCounter = 0;
             Console.SetWindowSize(20,2);
             Console.BufferWidth = Console.WindowWidth = 20;
-            Console.BufferHeight = Console.WindowHeight = 2;
+            Console.BufferHeight = Console.WindowHeight = 3;
+            WTSQuerySessionInformationW(IntPtr.Zero, dwSessionID, WTS_INFO_CLASS.WTSSessionInfoEx, ref pInfo, ref dwBytesReturned);
+            var shit = Marshal.PtrToStructure<WTSINFOEXW>(pInfo);
+
+            Console.Clear();
+            if (shit.Level == 1)
+            {
+                dwFlags = shit.Data.WTSInfoExLevel1.SessionFlags;
+            }
+            switch (dwFlags)
+            {
+                case 0: break;
+                case 1: secondsCounter++; break;
+                default: Console.WriteLine("Unknowed"); break;
+            }
+            Timer t;
             while (true)
             {
+                t = new Timer(TimerCallback, null, 0, 1000);
+                Console.ReadLine();
+                t.Dispose();
+                Console.ReadLine();
+            }
+        }
+        private static void TimerCallback(Object o)
+        {
                 WTSQuerySessionInformationW(IntPtr.Zero, dwSessionID, WTS_INFO_CLASS.WTSSessionInfoEx, ref pInfo, ref dwBytesReturned);
                 var shit = Marshal.PtrToStructure<WTSINFOEXW>(pInfo);
 
                 Console.Clear();
-                if (shit.Level == 1)
-                {
-                    dwFlags = shit.Data.WTSInfoExLevel1.SessionFlags;
+                if (watchUser == true) {  
+                    if (shit.Level == 1)
+                    {
+                        dwFlags = shit.Data.WTSInfoExLevel1.SessionFlags;
+                    }
+                } else {
+                    dwFlags = 1;
                 }
+
                 switch (dwFlags)
                 {
                     case 0: break;
@@ -133,8 +174,6 @@ namespace Pomodoro
                     default: Console.WriteLine("Unknowed"); break;
                 }
                 Console.WriteLine("Time: " + string.Format("{0:D2}", secondsCounter/3600) + ":" + string.Format("{0:D2}", (secondsCounter /60)%60) + ":" + string.Format("{0:D2}", secondsCounter % 60 ));
-                Thread.Sleep(1000);
-            }
         }
     }
 }
